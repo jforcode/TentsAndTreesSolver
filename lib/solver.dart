@@ -37,6 +37,8 @@ class Solver {
     _completedTentsInCols = input.colTents.map((e) => 0).toList();
     _changes = [];
 
+    print(_input.numRows);
+
     _loopOverGrid((cell) {
       if (cell.element == ElementState.tree) {
         _trees.add(cell);
