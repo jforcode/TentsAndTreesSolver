@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'dart:math';
 
 /*
 
@@ -23,6 +24,7 @@ class Solver {
   late List<int> _completedTentsInRows;
   late List<int> _completedTentsInCols;
   late List<Cell> _changes;
+  late List<Cell> _guesses;
 
   final orthogonalRs = [-1, 0, 1, 0];
   final orthogonalCs = [0, 1, 0, -1];
@@ -36,6 +38,7 @@ class Solver {
     _completedTentsInRows = input.rowTents.map((e) => 0).toList();
     _completedTentsInCols = input.colTents.map((e) => 0).toList();
     _changes = [];
+    _guesses = [];
 
     print(_input.numRows);
 
@@ -101,17 +104,20 @@ class Solver {
         .toList();
   }
 
-  List<List<ElementState>> solve() {
+  List<List<ElementState>>? solve() {
     // so that it doesn't become an infinite loop in testing
     int numTries = 0;
+    int maxTries = max(max(_input.numRows, _input.numCols), 5);
 
     do {
+      if (numTries++ > maxTries) {
+        return null;
+      }
+
       try {
         print("Try number $numTries");
         _markAbsoluteValues();
         var probableTent = _getProbableTentLocation();
-        print("Guessing $probableTent");
-
         if (probableTent == null) {
           if (_puzzleSolved()) {
             return _grid;
@@ -120,6 +126,7 @@ class Solver {
             throw InvalidStateException.noMoreGuesses();
           }
         } else {
+          _guesses.add(probableTent);
           _markTent(probableTent.rowIndex, probableTent.colIndex);
         }
       } on InvalidStateException catch (e) {
@@ -127,7 +134,7 @@ class Solver {
 
         _rollbackToLastGuessedTent();
       }
-    } while (!_puzzleSolved() && numTries++ < 10);
+    } while (!_puzzleSolved());
 
     return _grid;
   }
@@ -143,19 +150,44 @@ class Solver {
         return false;
       }
     }
+
+    for (int i = 0; i < _input.numRows; i++) {
+      for (int j = 0; j < _input.numCols; j++) {
+        if (_grid[i][j] == ElementState.tent && _hasTentInAdjacentCells(i, j)) {
+          return false;
+        }
+      }
+    }
+
     return true;
   }
 
   void _rollbackToLastGuessedTent() {
+    if (_guesses.isEmpty) {
+      return;
+    }
+
+    var lastGuess = _guesses.removeLast();
     for (int i = _changes.length - 1; i >= 0; i--) {
-      var cell = _changes[i];
-      _grid[cell.rowIndex][cell.colIndex] = ElementState.none;
-      _changes.removeAt(i);
+      var cell = _changes.removeLast(); // ok cause in loop is iterated in reverse
 
       if (cell.element == ElementState.tent) {
+        _completedTentsInRows[cell.rowIndex]--;
+        _completedTentsInCols[cell.colIndex]--;
+      }
+      _grid[cell.rowIndex][cell.colIndex] = ElementState.none;
+
+      if (cell.rowIndex == lastGuess.rowIndex && cell.colIndex == lastGuess.colIndex) {
+        _grid[cell.rowIndex][cell.colIndex] = ElementState.grass;
+        _changes.add(
+          Cell(rowIndex: cell.rowIndex, colIndex: cell.colIndex, element: ElementState.grass),
+        );
         break;
       }
     }
+
+    print("post rollback");
+    _printGrid();
   }
 
   Cell? _getProbableTentLocation() {
@@ -361,6 +393,17 @@ class Solver {
     });
 
     return invalid ? null : toRet;
+  }
+
+  bool _hasTentInAdjacentCells(int r, int c) {
+    bool ret = false;
+    _loopOverAdjacentCells(r, c, (cell) {
+      if (cell.element == ElementState.tent) {
+        ret = true;
+      }
+    });
+
+    return ret;
   }
 
   bool _hasTreeInOrthogonalCells(int r, int c) {

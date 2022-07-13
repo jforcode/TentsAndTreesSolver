@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:trees_and_tents_solver/grid_view.dart';
 import 'package:trees_and_tents_solver/home.dart';
-
-import 'grid_input_view.dart';
-import 'text_input_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,8 +18,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
-        '/inputGrid': (context) => const GridInputView(),
-        '/inputText': (context) => const TextInputView(),
+        '/gridInput': (context) => const GridInputView(),
       },
       home: const HomeView(),
     );

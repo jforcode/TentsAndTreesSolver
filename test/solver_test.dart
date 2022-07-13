@@ -49,7 +49,7 @@ void main() {
   }
 
   group('sample inputs', () {
-    var files = ['2X2', '5X5', '6X6', '8X8'];
+    var files = ['2X2', '5X5', '6X6', '8X8', '8X8_2'];
     for (int fi = 0; fi < files.length; fi++) {
       test(files[fi], () async {
         var fileName = "${files[fi]}.txt";
@@ -64,7 +64,7 @@ void main() {
   });
 
   test('guess input', () async {
-    var fileName = "8X8.txt";
+    var fileName = "8X8_2.txt";
     var input = await _parseInputFromFile(fileName);
     // var output = await _parseOutputFromFile(fileName);
 
