@@ -17,8 +17,9 @@ class GridInputViewState extends State<GridInputView> {
   List<int> colTents = [];
   List<List<ElementState>> trees = [];
   bool editable = true;
-  double fontSize = 24;
+  double fontSize = 20;
   bool invalid = false;
+  bool solved = false;
 
   @override
   void initState() {
@@ -45,7 +46,11 @@ class GridInputViewState extends State<GridInputView> {
       }
     }
 
-    fontSize = (row > 10 || col > 10) ? 10 : 24;
+    fontSize = row > 12
+        ? 8
+        : row > 8
+            ? 16
+            : 20;
     editable = true;
 
     setState(() {});
@@ -69,7 +74,7 @@ class GridInputViewState extends State<GridInputView> {
                     invalid
                         ? Text(
                             "Invalid Input",
-                            style: TextStyle(color: Colors.red[700], fontSize: 20),
+                            style: TextStyle(color: Colors.red.shade700, fontSize: 20),
                           )
                         : Container(),
                   ],
@@ -77,14 +82,20 @@ class GridInputViewState extends State<GridInputView> {
                 Container(
                   alignment: Alignment.bottomRight,
                   padding: const EdgeInsets.only(left: 12, right: 12, bottom: 16),
-                  child: ElevatedButton(
-                    onPressed: _solve,
-                    child: const Text("SOLVE"),
-                  ),
-                ),
+                  child: solved
+                      ? ElevatedButton(onPressed: _goBack, child: const Text("HOME"))
+                      : ElevatedButton(
+                          onPressed: _solve,
+                          child: const Text("SOLVE"),
+                        ),
+                )
               ],
             ),
     );
+  }
+
+  void _goBack() {
+    Navigator.pop(context);
   }
 
   void _solve() {
@@ -104,10 +115,8 @@ class GridInputViewState extends State<GridInputView> {
           .toList(),
     );
 
-    Solver s = Solver(input);
-    var output = s.solve();
+    var output = Solver(input).solve();
     if (output == null) {
-      // TODO: some more indicators in UI?
       setState(() {
         editable = true;
         invalid = true;
@@ -116,6 +125,7 @@ class GridInputViewState extends State<GridInputView> {
       setState(() {
         invalid = false;
         trees = output;
+        solved = true;
       });
     }
   }

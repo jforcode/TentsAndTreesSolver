@@ -39,7 +39,7 @@ class HomeViewState extends State<HomeView> {
             Slider(
               max: maxGridSize,
               min: minGridSize,
-              divisions: maxGridSize ~/ 1,
+              divisions: (maxGridSize - minGridSize) ~/ 1,
               value: currGridSize,
               onChanged: (newValue) {
                 setState(() {

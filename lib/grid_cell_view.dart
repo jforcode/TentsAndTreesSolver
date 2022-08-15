@@ -21,6 +21,10 @@ class GridCellView extends StatefulWidget {
 
 class GridCellViewState extends State<GridCellView> {
   ElementState currState = ElementState.none;
+  final Image treeIcon =
+      const Image(image: AssetImage('assets/icons/tree_icon.png'), fit: BoxFit.fitWidth);
+  final Image tentIcon =
+      const Image(image: AssetImage('assets/icons/tent_icon.png'), fit: BoxFit.fitWidth);
 
   @override
   void initState() {
@@ -33,46 +37,50 @@ class GridCellViewState extends State<GridCellView> {
   @override
   Widget build(BuildContext context) {
     Color cellColor = Colors.transparent;
-    String cellText = "";
+    Image? cellIcon;
 
     switch (currState) {
       case ElementState.none:
         cellColor = Colors.black54;
-        cellText = "";
         break;
       case ElementState.tree:
         cellColor = Colors.green.shade300;
-        cellText = "T";
+        cellIcon = treeIcon;
         break;
       case ElementState.tent:
-        cellColor = Colors.red.shade300;
-        cellText = "X";
+        cellColor = Colors.red.shade200;
+        cellIcon = tentIcon;
         break;
       case ElementState.grass:
         cellColor = Colors.lightGreen.shade300;
-        cellText = "";
         break;
     }
 
-    // each can be a stateful view in itself, then the whole state won't need to be changed
-    return TextButton(
-      onPressed: () {
-        setState(() {
-          if (!widget.isEditable) {
-            return;
-          }
+    if (cellIcon == null) {
+      return TextButton(
+        onPressed: _onCellPressed,
+        style: ButtonStyle(backgroundColor: MaterialStateProperty.all(cellColor)),
+        child: const Text(""),
+      );
+    } else {
+      return Container(
+        color: cellColor,
+        child: IconButton(
+          onPressed: _onCellPressed,
+          icon: cellIcon,
+        ),
+      );
+    }
+  }
 
-          currState = currState == ElementState.tree ? ElementState.none : ElementState.tree;
-          widget.onValueUpdated(currState);
-        });
-      },
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(cellColor),
-      ),
-      child: Text(
-        cellText,
-        style: TextStyle(color: Colors.black54, fontSize: widget.fontSize),
-      ),
-    );
+  void _onCellPressed() {
+    if (!widget.isEditable) {
+      return;
+    }
+
+    setState(() {
+      currState = currState == ElementState.tree ? ElementState.none : ElementState.tree;
+      widget.onValueUpdated(currState);
+    });
   }
 }
